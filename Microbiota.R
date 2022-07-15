@@ -1,7 +1,7 @@
 
 #Import from QIIME2
 library(qiime2R)
-qiime=qza_to_phyloseq("../data/table.qza", tree="..data/rep_seqs_aligned_masked_tree_rooted.qza", 
+qiime=qza_to_phyloseq("../data/table.qza", tree="../data/rep_seqs_aligned_masked_tree_rooted.qza", 
                       metadata="../data/metadata0.tsv", taxonomy="../data/classification.qza")
 
 # Removing the negative control and the unassigned ASVs at phylum level
