@@ -9,6 +9,17 @@ library(phyloseq)
 qiimed=prune_samples(sample_names(qiime)!="CN-16S",qiime)
 qiimed=subset_taxa(qiimed,Phylum!="NA")
 
+
+
+
+
+# Changing outdated names in the database for the updated ones
+qiimed@tax_table=sub("Firmicutes", "Bacillota", qiimed@tax_table)
+qiimed@tax_table=sub("Proteobacteria", "Pseudomonadota", qiimed@tax_table)
+qiimed@tax_table=sub("Actinobacteriota", "Actinomycetota", qiimed@tax_table)
+
+
+
 # Rarefaction curve
 library(vegan)
 rarecurve=rarecurve(t(otu_table(qiimed)), step=50, cex=0.5)
@@ -776,3 +787,22 @@ ggsave("../images/sub5ptopg.png",sub5ptopg)
 ggsave("../images/sub5ptops.png",sub5ptops)
 ggsave("../images/sub5pbeta.png",sub5pbeta)
 ggsave("../images/sub5pht.png",sub5pht)
+
+
+##########################################
+# PICRUST2 ANALYSIS
+##########################################
+
+which(rownames(sub1@sam_data)==rownames(picrustt))
+match(rownames(sub1@sam_data),rownames(qiimed@sam_data))
+
+picrust=read.table(file="../data/picrust/pathways_out/path_abun_unstrat.tsv", header=T)
+picrustt=as.data.frame(t(picrust))
+colnames(picrustt)=picrustt[1,]
+picrustt=picrustt[-c(1,2),]
+
+picrustt=cbind(treatment.groups=qiimed@sam_data$treatment.group,picrustt)
+boxplot(subset(picrustt,picrustt$treatment.groups=="Feces WT")[,-1][,1])
+
+barplot(picrustt[c(2)])
+
