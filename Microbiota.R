@@ -15,7 +15,7 @@ qiimed@tax_table=sub("Firmicutes", "Bacillota", qiimed@tax_table)
 qiimed@tax_table=sub("Proteobacteria", "Pseudomonadota", qiimed@tax_table)
 qiimed@tax_table=sub("Actinobacteriota", "Actinomycetota", qiimed@tax_table)
 
-
+unique(qiimed@tax_table[,"Phylum"])
 
 # Rarefaction curve
 library(vegan)
@@ -55,6 +55,7 @@ p0phylac=plot_bar(qiimerel, fill = "Phylum") +
   theme(axis.title.x = element_blank(),
         panel.background = element_blank(),panel.grid.major = element_blank(),
         strip.background = element_blank(),axis.text.x = element_text(angle = 90,vjust=0))+ylab("Relative abundance")
+p0phylac$data$Phylum = factor(p0phylac$data$Phylum, levels = unique(qiimerel@tax_table[names(sort(taxa_sums(tax_glom(qiimerel,taxrank="Phylum")))),"Phylum"]))
 
 # GROUPED
 p0phylag=plot_bar(transform_sample_counts(qiimerel, function(x) x/9), x="treatment.group",fill = "Phylum") + 
@@ -65,6 +66,7 @@ p0phylag=plot_bar(transform_sample_counts(qiimerel, function(x) x/9), x="treatme
   theme(axis.title.x = element_blank(),
         panel.background = element_blank(),panel.grid.major = element_blank(),
         strip.background = element_blank(),axis.text.x = element_text(angle = 90,vjust=0.5,hjust=1))+ylab("Relative abundance") 
+p0phylag$data$Phylum = factor(p0phylag$data$Phylum, levels = unique(qiimerel@tax_table[names(sort(taxa_sums(tax_glom(qiimerel,taxrank="Phylum")))),"Phylum"]))
 
 #Plotting phyla side by side
 qiime_phyla_abundance=psmelt(tax_glom(qiimerel,taxrank="Phylum"))[,c(1,2,3,5,14)]
@@ -77,52 +79,58 @@ p0phylas=ggplot(qiime_phyla_abundance,aes(x=reorder(Phylum, Abundance, FUN = med
 
 
 #######################
-# TOP 10 GENUS COMPARISON
+# TOP 10 GENERA COMPARISON
 #######################
 
 qiimetop=tax_glom(qiimerel, taxrank = "Genus")
 
-leasttaxa=intersect(intersect(intersect(intersect(intersect(names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="Feces WT")), 
-                                                                       decreasing = TRUE))[-c(1:10)],
-                                                            names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="Feces HET")), 
-                                                                       decreasing = TRUE))[-c(1:10)]),
-                                                  names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-non pregnant")), 
-                                                             decreasing = TRUE))[-c(1:10)]),
-                                        names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-pregnant")), 
-                                                   decreasing = TRUE))[-c(1:10)]),
-                              names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-pregnant chiro")), 
-                                         decreasing = TRUE))[-c(1:10)]),
-                    names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-pregnant folic")), 
-                               decreasing = TRUE))[-c(1:10)])
+leasttaxa=intersect(intersect(intersect(intersect(intersect(
+  names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="Feces WT")), 
+             decreasing = TRUE))[-c(1:10)],
+  names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="Feces HET")), 
+             decreasing = TRUE))[-c(1:10)]),
+  names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-non pregnant")), 
+             decreasing = TRUE))[-c(1:10)]),
+  names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-pregnant")), 
+             decreasing = TRUE))[-c(1:10)]),
+  names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-pregnant chiro")), 
+             decreasing = TRUE))[-c(1:10)]),
+  names(sort(taxa_sums(subset_samples(qiimetop,treatment.group=="HET-pregnant folic")), 
+             decreasing = TRUE))[-c(1:10)])
 
 # Merging all other taxa
 
-qiimetop@tax_table[leasttaxa,"Genus"]=c("0ther")
+qiimetop@tax_table[leasttaxa,"Genus"]=c("Other")
 
 # COMPLETE
 p0topc=plot_bar(transform_sample_counts(qiimetop, function(x) x/sum(x)), fill = "Genus")+ 
   geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack")+
   facet_wrap(~factor(treatment.group,levels=c(sort(unique(qiimetop@sam_data$treatment.group),
                                                    decreasing = T))),scales = "free",ncol=3) + 
-  guides(color=guide_legend(ncol=1))+
+  guides(color=guide_legend(ncol=2))+
   scale_color_manual(values = colorRampPalette(c(RColorBrewer::brewer.pal(8, "Set2"),RColorBrewer::brewer.pal(9, "Set1")))(16))+
   scale_fill_manual(values = colorRampPalette(c(RColorBrewer::brewer.pal(8, "Set2"),RColorBrewer::brewer.pal(9, "Set1")))(16))+
   theme_bw()+theme(axis.title.x = element_blank(), panel.background = element_blank(),
                    axis.text.x = element_text(angle = 90,vjust=0.5), panel.grid.major = element_blank(),
                    strip.background = element_blank())+ylab("Relative abundance")
+p0topc$data$Genus = factor(p0topc$data$Genus, levels = unique(qiimetop@tax_table[names(sort(taxa_sums(qiimetop))),"Genus"]))
 
 
 
 # GROUPED
 p0topg=plot_bar(transform_sample_counts(qiimetop, function(x) x/(sum(x)*9)), x="treatment.group",fill = "Genus")+ 
   geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack")+
-  guides(color=guide_legend(ncol=2))+
+  guides(color=guide_legend(ncol=1,override.aes = list(size = 0.25)),
+         shape = guide_legend(override.aes = list(size = 0.25)))+
   scale_color_manual(values = colorRampPalette(c(RColorBrewer::brewer.pal(8, "Set2"),RColorBrewer::brewer.pal(9, "Set1")))(16))+
   scale_fill_manual(values = colorRampPalette(c(RColorBrewer::brewer.pal(8, "Set2"),RColorBrewer::brewer.pal(9, "Set1")))(16))+
   theme(axis.title.x = element_blank(), panel.background = element_blank(),
         panel.grid.major = element_blank(),strip.background = element_blank(),
-        axis.text.x=element_text(angle = 90,hjust=1,vjust=0.5))+
+        axis.text.x=element_text(angle = 90,hjust=1,vjust=0.5),legend.text=element_text(size=7),
+        legend.key.size = unit(0.5, 'cm'))+ labs(fill='\n\n\n\n\n\n\nGenus',col='\n\n\n\n\n\n\nGenus')+
   ylab("Relative abundance")
+
+p0topg$data$Genus = factor(p0topg$data$Genus, levels = unique(qiimetop@tax_table[names(sort(taxa_sums(qiimetop))),"Genus"]))
 
 # plotting all 
 qiime_top_abundance=psmelt(tax_glom(qiimetop,taxrank="Genus"))[,c(1,2,3,5,18)]
@@ -139,20 +147,18 @@ p0tops=ggplot(qiime_top_abundance,aes(x=reorder(Genus, Abundance, FUN = median,d
 #################
 library(ggpubr)
 p0alpha=plot_richness(qiimed, x="treatment.group", measures=c("Observed","Chao1","Shannon"), 
-                      color="treatment.group")+ theme(legend.position="none")+
+                      color="treatment.group")+
   geom_boxplot()+ geom_point(color="black") + theme_bw()+
   theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
         strip.background = element_blank(),axis.text.x = element_text(angle = 90,vjust=0.5,hjust=1),
-        legend.title= element_blank())+
+        legend.title= element_blank(),legend.position="none")+
   stat_compare_means(aes(label = paste0(..p.format.., "\n", ..p.signif..)),
-                     vjust=1,hide.ns = T,show.legend=FALSE,
+                     vjust=0.05,hide.ns = T,show.legend=FALSE,size=3,
                      comparisons = list(c("Feces HET", "Feces WT"),
                                         c("Feces HET", "HET-non pregnant"),
                                         c("HET-non pregnant", "HET-pregnant"),
                                         c("HET-pregnant", "HET-pregnant folic"),
                                         c("HET-pregnant", "HET-pregnant chiro")))
-
-
 
 #################
 # Beta diversity
@@ -193,7 +199,7 @@ sub1rel=subset_samples(qiimerel,treatment.group=="Feces WT" | treatment.group=="
 
 # Comparing phyla abundance & statistical tests
 sub1pphyla=ggplot(qiime_phyla_abundance[which(qiime_phyla_abundance$treatment.group==c("Feces WT", "Feces HET")),],
-                  aes(x=reorder(Phylum, Abundance, FUN = median,decreasing=T), y=Abundance, color=treatment.group)) +
+                  aes(x=reorder(Phylum, Abundance, FUN = median,decreasing=T), y=Abundance, fill=treatment.group)) +
   geom_boxplot()+ theme_bw()+theme(axis.title.x = element_blank(),
                                    axis.text.x = element_text(angle = 90,hjust=1,vjust=0.4))+ 
   labs(col='Group') +ylab("Relative abundance (%)")+
@@ -821,11 +827,12 @@ barplot(picrustt[c(2)])
 ####################################
 #Arranging graphs for paper
 ####################################
-figure1=ggarrange(p0phylag,p0topg,p0beta,p0alpha,labels = LETTERS,widths = c(1,1.5))
+figure1=ggarrange(p0phylag,p0topg,p0alpha,p0beta,labels = LETTERS[1:4])
+figure1.2=ggarrange(p0alpha,p0beta.labels = c("C","D"))
+ggarrange(ggarrange(p0phylag,p0topg,labels = c("A","B"),widths = c(1,1.5)),ggarrange(p0alpha,p0beta.labels = c("C","D")),nrow=2)
 ggsave("../images/figure1.png",figure1)
 
-ggarrange(sub1pphyla,sub1ptops,
-          sub2pphyla,sub2ptops,
-          sub3pphyla,sub3ptops,
-          sub4pphyla,sub4ptops,
-          sub5pphyla,sub5ptops, labels = LETTERS,ncol=2,nrow=5)
+library(Deseq2)
+deseq=phyloseq_to_deseq2(qiimed)
+
+qiimerel
