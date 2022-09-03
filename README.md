@@ -1,6 +1,6 @@
 # Pipelines for microbiota analysis
 
-This repository contains code for the analysis of 16S rRNA sequences as part of a Master's thesis. Three scripts were used in the final analysis: one script for QIIME2; one for PICRUSt2 and another one for all the downstream analysis in R.
+This repository contains code for the analysis of 16S rRNA sequences as part of a Master's thesis. Three scripts were written for the final analysis: one script for QIIME2; one for PICRUSt2 and another one for all the downstream analysis in R. All three scripts are commented in detail.
 
 ## QIIME2
 The script qiime.sh was used for the processing of raw sequences, merging, quality control, taxonomic classification and phylogeny building. The outputs produced are the ASV table, taxonomy table, phylogenetic tree. 
